@@ -1,14 +1,33 @@
-from django.db import IntegrityError
+from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
-from .models import Usuario, Proyecto
+from .models import Usuario, Proyecto, ProyectoUsuario
 from django.shortcuts import get_object_or_404
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.exceptions import *
+from utils.tokenManager import TokenManager
 
 # Create your views here.
+
+class AuthView(View):
+    #   Se ejecuta cada vez que hacemos una petición.
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request):
+        jsonData = json.loads(request.body)
+
+        token = TokenManager.generateToken(jsonData["username"], jsonData["password"])
+
+        if token:
+            data = {'status': '0', 'accessToken': token}
+        else:
+            data = {'status': '1', 'description': "Invalid username or password."}
+
+        return JsonResponse(data)
 
 class ProjectView(View):
 
@@ -39,9 +58,9 @@ class ProjectView(View):
     def post(self, request):
         jsonData = json.loads(request.body)
 
-        Proyecto.objects.create(nombre=jsonData["nombre"], activo=jsonData["activo"])
+        Proyecto.objects.create(nombre=jsonData["nombre"])
 
-        data = {'status': '0', 'request body': jsonData}
+        data = {'status': '0', 'description': "Project added."}
 
         return JsonResponse(data)
 
@@ -141,5 +160,75 @@ class UserView(View):
             data = {'status': '0', 'description': 'Success.'}
         else:
             data = {'status': '1', 'description': 'No users found.'}
+
+        return JsonResponse(data)
+
+
+class ProjectUserView(View):
+    #   Para el CORS. Se ejecuta cada vez que hacemos una petición.
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+
+        pu = ProyectoUsuario.objects.all()
+        projectsUsers = []
+
+        for projectUser in pu:
+            projectUserData = {}
+            projectUserData["id"] = projectUser.id
+            projectUserData["username"] = projectUser.usuario_id.username
+            projectUserData["project"] = projectUser.proyecto_id.nombre
+
+            projectsUsers.append(projectUserData)
+        
+        return HttpResponse(json.dumps(projectsUsers), 'application/json')
+
+
+    def userExists(self, id) -> bool:
+        users = list(Usuario.objects.filter(id=id).values())
+        return True if len(users) > 0 else False
+
+    def projectExists(self, id) -> bool:
+        projects = list(Proyecto.objects.filter(id=id).values())
+        return True if len(projects) > 0 else False
+
+    def post(self, request):
+        jsonData = json.loads(request.body)
+
+        if not self.userExists(jsonData["usuarioId"]) or not self.projectExists(jsonData["proyectoId"]):
+            data = {'status': '1', 'description': 'User and/or project don\'t exist.'}
+        else:
+            ProyectoUsuario.objects.create(proyecto_id=Proyecto(id=jsonData["proyectoId"]), usuario_id=Usuario(id=jsonData["usuarioId"]), activo=jsonData["usuarioId"])
+            data = {'status': '0', 'description': 'User added to project.'}
+
+        return JsonResponse(data)
+
+    def put(self, request):
+        jsonData = json.loads(request.body)
+
+        if not self.userExists(jsonData["usuarioId"]) or not self.projectExists(jsonData["proyectoId"]):
+            data = {'status': '1', 'description': 'User and/or project don\'t exist.'}
+        else:
+            projectUser = ProyectoUsuario.objects.get(id=jsonData["id"])
+
+            projectUser.proyecto_id = Proyecto.objects.get(id=jsonData["proyectoId"])
+            projectUser.usuario_id = Usuario.objects.get(id=jsonData["usuarioId"])
+
+            projectUser.save()
+
+            data = {'status': '0', 'description': 'Success.'}
+
+        return JsonResponse(data)
+
+    def delete(self, request, id):
+        users = list(ProyectoUsuario.objects.filter(id=id).values())
+
+        if len(users) > 0:
+            ProyectoUsuario.objects.filter(id=id).delete()
+            data = {'status': '0', 'description': 'Success.'}
+        else:
+            data = {'status': '1', 'description': 'No Proyecto-Usuario found.'}
 
         return JsonResponse(data)
