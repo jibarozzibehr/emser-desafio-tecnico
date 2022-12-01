@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.exceptions import *
 from utils.tokenManager import TokenManager
+from utils.userTypes import UserTypes
 
 # Create your views here.
 
@@ -36,56 +37,78 @@ class ProjectView(View):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def get(self, request, id=0):
+    def get(self, request):
 
-        if id != 0:
-            projects = list(Proyecto.objects.filter(id=id).values())
-            if len(projects) > 0:
-                project = projects[0]
-                data = data = {'status': '0', 'project': project}
+        jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
+
+        if TokenManager.verifyToken(token):
+
+            if jsonData.get("id") is not None:
+                projects = list(Proyecto.objects.filter(id=jsonData["id"]).values())
+                if len(projects) > 0:
+                    data = data = {'status': '0', 'project': projects[0]}
+                else:
+                    data = {'status': '1', 'description': 'No projects found.'}
             else:
-                data = {'status': '1', 'description': 'No projects found.'}
-            return JsonResponse(data)
+                projects = list(Proyecto.objects.values())
+
+                if len(projects) > 0:
+                    data = {'status': '0', 'projects': projects}
+                else:
+                    data = {'status': '1', 'description': 'No projects found.'}
         else:
-            projects = list(Proyecto.objects.values())
+            data = {'status': '2', 'description': 'You are not allowed to access this content.'}
+        
+        return JsonResponse(data)
 
-            if len(projects) > 0:
-                data = {'status': '0', 'projects': projects}
-            else:
-                data = {'status': '1', 'description': 'No projects found.'}
-            return JsonResponse(data)
 
     def post(self, request):
         jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
 
-        Proyecto.objects.create(nombre=jsonData["nombre"])
-
-        data = {'status': '0', 'description': "Project added."}
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+            Proyecto.objects.create(nombre=jsonData["nombre"])
+            data = {'status': '0', 'description': "Project added."}
+        else:
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
 
         return JsonResponse(data)
 
-    def put(self, request, id):
+    def put(self, request):
         jsonData = json.loads(request.body)
-        projects = list(Proyecto.objects.filter(id=id).values())
-        
-        if len(projects) > 0:
-            project = Proyecto.objects.get(id=id)   # Lanza una excepción si no lo encuentra; a diferencia del filter().
-            project.nombre = jsonData["nombre"]
-            project.activo = jsonData["activo"]
-            project.save()
-            data = {'status': '0', 'description': 'Success'}
+        token = jsonData["accessToken"]
+
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+            projects = list(Proyecto.objects.filter(id=jsonData["id"]).values())
+            
+            if len(projects) > 0:
+                project = Proyecto.objects.get(id=jsonData["id"])   # Lanza una excepción si no lo encuentra; a diferencia del filter().
+                project.nombre = jsonData["nombre"]
+                project.activo = jsonData["activo"]
+                project.save()
+                
+                data = {'status': '0', 'description': 'Success'}
+            else:
+                data = {'status': '1', 'description': 'No projects found.'}
         else:
-            data = {'status': '1', 'description': 'No projects found.'}
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
         
         return JsonResponse(data)
 
-    def delete(self, request, id):
-        projects = list(Proyecto.objects.filter(id=id).values())
-        if len(projects) > 0:
-            Proyecto.objects.filter(id=id).delete()
-            data = {'status': '0', 'description': 'Success'}
+    def delete(self, request):
+        jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
+
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+            projects = list(Proyecto.objects.filter(id=jsonData["id"]).values())
+            if len(projects) > 0:
+                Proyecto.objects.filter(id=jsonData["id"]).delete()
+                data = {'status': '0', 'description': 'Success'}
+            else:
+                data = {'status': '1', 'description': 'No projects found.'}
         else:
-            data = {'status': '1', 'description': 'No projects found.'}
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
 
         return JsonResponse(data)
 
@@ -97,23 +120,33 @@ class UserView(View):
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
 
-    def get(self, request, id=0):
-        if id != 0:
-            users = list(Usuario.objects.filter(id=id).values())
-            if len(users) > 0:
-                project = users[0]
-                data = data = {'status': '0', 'project': project}
-            else:
-                data = {'status': '1', 'description': 'No users found.'}
-            return JsonResponse(data)
-        else:
-            users = list(Usuario.objects.values())
 
-            if len(users) > 0:
-                data = {'status': '0', 'users': users}
+    def get(self, request):
+        jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
+
+        if TokenManager.verifyToken(token):
+            if jsonData.get("id") is not None:
+                users = list(Usuario.objects.filter(id=jsonData["id"]).values())
+                if len(users) > 0:
+                    data = data = {'status': '0', 'user': users[0]}
+                else:
+                    data = {'status': '1', 'description': 'No users found.'}
+                return JsonResponse(data)
             else:
-                data = {'status': '1', 'description': 'No users found.'}
-            return JsonResponse(data)
+                users = list(Usuario.objects.values())
+
+                if len(users) > 0:
+                    data = {'status': '0', 'users': users}
+                else:
+                    data = {'status': '1', 'description': 'No users found.'}
+        else:
+            data = {'status': '2', 'description': 'You are not allowed to access this content.'}
+        
+        return JsonResponse(data)
+
+        
+
 
 
     def userExists(self, username) -> bool:
@@ -122,44 +155,65 @@ class UserView(View):
 
     def post(self, request):
         jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
 
-        if self.userExists(username=jsonData["username"]):
-            data = {'status': '2', 'description': 'Error adding the user: the username already exists.'}
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+            if self.userExists(username=jsonData["username"]):
+                data = {'status': '2', 'description': 'Error adding the user: the username already exists.'}
+            else:
+                Usuario.objects.create(username=jsonData["username"], password=jsonData["password"], nombre=jsonData["nombre"], apellido=jsonData["apellido"], telefono=jsonData["telefono"], email=jsonData["email"], tipo=jsonData["tipo"], activo=jsonData["activo"])
+
+                data = {'status': '0', 'description': 'User added.'}
         else:
-            Usuario.objects.create(username=jsonData["username"], password=jsonData["password"], nombre=jsonData["nombre"], apellido=jsonData["apellido"], telefono=jsonData["telefono"], email=jsonData["email"], tipo=jsonData["tipo"], activo=jsonData["activo"])
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
 
-            data = {'status': '0', 'description': 'User added.'}
         return JsonResponse(data)
 
-    def put(self, request, id):
+
+    def put(self, request):
         jsonData = json.loads(request.body)
 
-        users = list(Usuario.objects.filter(id=id).values())
-    
-        if len(users) > 0:
-            user = Usuario.objects.get(id=id)   # Lanza una excepción si no lo encuentra; a diferencia del filter().
-            user.username = jsonData["username"]
-            user.password = jsonData["password"]
-            user.nombre = jsonData["nombre"]
-            user.apellido = jsonData["apellido"]
-            user.telefono = jsonData["telefono"]
-            user.email = jsonData["email"]
-            user.tipo = jsonData["tipo"]
-            user.activo = jsonData["activo"]
-            user.save()
-            data = {'status': '0', 'description': 'Success.'}
+        token = jsonData["accessToken"]
+
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+
+            users = list(Usuario.objects.filter(id=jsonData["id"]).values())
+        
+            if len(users) > 0:
+                user = Usuario.objects.get(id=jsonData["id"])   # Lanza una excepción si no lo encuentra; a diferencia del filter().
+                user.username = jsonData["username"]
+                user.password = jsonData["password"]
+                user.nombre = jsonData["nombre"]
+                user.apellido = jsonData["apellido"]
+                user.telefono = jsonData["telefono"]
+                user.email = jsonData["email"]
+                user.tipo = jsonData["tipo"]
+                user.activo = jsonData["activo"]
+                user.save()
+                data = {'status': '0', 'description': 'Success.'}
+            else:
+                data = {'status': '1', 'description': 'No users found.'}
+
         else:
-            data = {'status': '1', 'description': 'No users found.'}
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
     
         return JsonResponse(data)
 
-    def delete(self, request, id):
-        users = list(Usuario.objects.filter(id=id).values())
-        if len(users) > 0:
-            Usuario.objects.filter(id=id).delete()
-            data = {'status': '0', 'description': 'Success.'}
+    def delete(self, request):
+
+        jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
+
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+            users = list(Usuario.objects.filter(id=jsonData["id"]).values())
+            if len(users) > 0:
+                Usuario.objects.filter(id=jsonData["id"]).delete()
+                data = {'status': '0', 'description': 'Success.'}
+            else:
+                data = {'status': '1', 'description': 'No users found.'}
+
         else:
-            data = {'status': '1', 'description': 'No users found.'}
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
 
         return JsonResponse(data)
 
@@ -172,18 +226,25 @@ class ProjectUserView(View):
 
     def get(self, request):
 
-        pu = ProyectoUsuario.objects.all()
-        projectsUsers = []
+        jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
 
-        for projectUser in pu:
-            projectUserData = {}
-            projectUserData["id"] = projectUser.id
-            projectUserData["username"] = projectUser.usuario_id.username
-            projectUserData["project"] = projectUser.proyecto_id.nombre
+        if TokenManager.verifyToken(token):
 
-            projectsUsers.append(projectUserData)
+            pu = ProyectoUsuario.objects.all()
+            projectsUsers = []
+
+            for projectUser in pu:
+                projectUserData = {}
+                projectUserData["id"] = projectUser.id
+                projectUserData["username"] = projectUser.usuario_id.username
+                projectUserData["project"] = projectUser.proyecto_id.nombre
+
+                projectsUsers.append(projectUserData)
         
-        return HttpResponse(json.dumps(projectsUsers), 'application/json')
+            return HttpResponse(json.dumps(projectsUsers), 'application/json')
+        else:
+            return HttpResponse('{"status": 2, "description": "You are not allowed to access this content."}', 'application/json')
 
 
     def userExists(self, id) -> bool:
@@ -196,39 +257,56 @@ class ProjectUserView(View):
 
     def post(self, request):
         jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
 
-        if not self.userExists(jsonData["usuarioId"]) or not self.projectExists(jsonData["proyectoId"]):
-            data = {'status': '1', 'description': 'User and/or project don\'t exist.'}
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+
+            if not self.userExists(jsonData["usuarioId"]) or not self.projectExists(jsonData["proyectoId"]):
+                data = {'status': '1', 'description': 'User and/or project don\'t exist.'}
+            else:
+                ProyectoUsuario.objects.create(proyecto_id=Proyecto(id=jsonData["proyectoId"]), usuario_id=Usuario(id=jsonData["usuarioId"]), activo=jsonData["usuarioId"])
+                data = {'status': '0', 'description': 'User added to project.'}
         else:
-            ProyectoUsuario.objects.create(proyecto_id=Proyecto(id=jsonData["proyectoId"]), usuario_id=Usuario(id=jsonData["usuarioId"]), activo=jsonData["usuarioId"])
-            data = {'status': '0', 'description': 'User added to project.'}
-
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
         return JsonResponse(data)
 
     def put(self, request):
         jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
 
-        if not self.userExists(jsonData["usuarioId"]) or not self.projectExists(jsonData["proyectoId"]):
-            data = {'status': '1', 'description': 'User and/or project don\'t exist.'}
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+
+            if not self.userExists(jsonData["usuarioId"]) or not self.projectExists(jsonData["proyectoId"]):
+                data = {'status': '1', 'description': 'User and/or project don\'t exist.'}
+            else:
+                projectUser = ProyectoUsuario.objects.get(id=jsonData["id"])
+
+                projectUser.proyecto_id = Proyecto.objects.get(id=jsonData["proyectoId"])
+                projectUser.usuario_id = Usuario.objects.get(id=jsonData["usuarioId"])
+
+                projectUser.save()
+
+                data = {'status': '0', 'description': 'Success.'}
         else:
-            projectUser = ProyectoUsuario.objects.get(id=jsonData["id"])
-
-            projectUser.proyecto_id = Proyecto.objects.get(id=jsonData["proyectoId"])
-            projectUser.usuario_id = Usuario.objects.get(id=jsonData["usuarioId"])
-
-            projectUser.save()
-
-            data = {'status': '0', 'description': 'Success.'}
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
 
         return JsonResponse(data)
 
-    def delete(self, request, id):
-        users = list(ProyectoUsuario.objects.filter(id=id).values())
+    def delete(self, request):
+        jsonData = json.loads(request.body)
+        token = jsonData["accessToken"]
 
-        if len(users) > 0:
-            ProyectoUsuario.objects.filter(id=id).delete()
-            data = {'status': '0', 'description': 'Success.'}
+        if TokenManager.verifyToken(token) and TokenManager.getUserRole(token) == UserTypes.SUPERUSER.value:
+
+            users = list(ProyectoUsuario.objects.filter(id=jsonData["id"]).values())
+
+            if len(users) > 0:
+                ProyectoUsuario.objects.filter(id=jsonData["id"]).delete()
+                data = {'status': '0', 'description': 'Success.'}
+            else:
+                data = {'status': '1', 'description': 'No Proyecto-Usuario found.'}
+
         else:
-            data = {'status': '1', 'description': 'No Proyecto-Usuario found.'}
+            data = {'status': '2', 'description': 'You are not allowed to perform this action.'}
 
         return JsonResponse(data)

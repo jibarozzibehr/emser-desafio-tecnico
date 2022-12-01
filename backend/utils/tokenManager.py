@@ -1,5 +1,6 @@
 import jwt
 import os
+import json
 
 from api.models import Usuario, Proyecto, ProyectoUsuario
 
@@ -24,9 +25,15 @@ class TokenManager:
             payload = jwt.decode(token, key, algorithms="HS256")
             return payload
             
-        except jwt.exceptions.InvalidSignatureError:
+        except (jwt.exceptions.InvalidSignatureError, jwt.exceptions.DecodeError):
             return False
 
+    def getUserRole(token):
+        key = str(os.environ.get('JWT_SIGNATURE'))
 
-
-
+        try:
+            payload = jwt.decode(token, key, algorithms="HS256")
+            return payload["tipo"]
+            
+        except jwt.exceptions.InvalidSignatureError:
+            return 0
