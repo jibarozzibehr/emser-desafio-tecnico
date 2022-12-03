@@ -82,11 +82,14 @@
 
         <div class="col-md-6 mb-3">
             <label for="tipo" class="form-label">Tipo</label>
-            <input type="text" class="form-control" formControlName="tipo"
+            <select class="form-select" formControlName="tipo"
                 [class.is-invalid]="submitted && editUserForm.controls.tipo.errors?.required">
-            <div class="invalid-feedback">
-                Debe ingresar un tipo de usuario.
-            </div>
+                <div class="invalid-feedback">
+                    Debe ingresar un tipo de usuario.
+                </div>
+                <option value="1">Superusuario</option>
+                <option value="2">Admin</option>
+            </select>
         </div>
 
         <div class="col-md-6 mb-3 d-flex align-items-end">
