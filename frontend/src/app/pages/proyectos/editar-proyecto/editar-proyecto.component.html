@@ -1,0 +1,45 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+
+    <h1 class="mb-5">Editar proyecto "{{proyecto?.project.nombre}}"</h1>
+
+    <div *ngIf="fin" class="alert alert-success alert-dismissible fade show" role="alert">
+        Transacción exitosa.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        Error: {{errorMessage}}.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+    <form class="row" (ngSubmit)="editProyecto()">
+
+        <div class="col-md-3 mb-3">
+            <dt>Código</dt>
+            <dd>{{proyecto?.project.id}}</dd>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <dt>Activo</dt>
+            <dd>{{proyecto?.project.activo ? "Sí" : "No"}}</dd>
+        </div>
+
+
+
+        <div class="col-md-6 mb-3">
+            <dt>Nombre</dt>
+
+            <dd>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" [formControl]="nombre" />
+                    <button class="btn btn-outline-secondary" type="button" (click)="editProyecto()">Guardar</button>
+                </div>
+            </dd>
+        </div>
+    </form>
+
+</div>

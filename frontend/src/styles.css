@@ -1,1 +1,9 @@
-/* You can add global styles to this file, and also import other style files */
+.dark-mode {
+    background-color: #2d3436;
+    color: #dfe6e9;
+}
+
+.light-mode {
+    background-color: #dfe6e9;
+    color: #2d3436;
+}

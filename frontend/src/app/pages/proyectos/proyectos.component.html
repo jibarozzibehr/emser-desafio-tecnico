@@ -1,0 +1,65 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+
+    <div class="d-flex mb-5 justify-content-between">
+        <h1>Proyectos</h1>
+
+        <div class="d-flex align-items-center" *ngIf="_authService.getTipo() == tipos.SUPERUSUARIO">
+            <button class="btn btn-primary" (click)="addProyecto()">Nuevo Proyecto</button>
+        </div>
+    </div>
+
+    <p class="mt-5 text-center" *ngIf="!proyectos || proyectos.projects.length <= 0">No hay proyectos disponibles.</p>
+
+    <div *ngIf="fin" class="alert alert-success alert-dismissible fade show" role="alert">
+        Transacción exitosa.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        Hubo un error al editar el proyecto.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+    <div *ngIf="proyectos && proyectos.projects.length > 0" class="table-responsive mt-3">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Proyecto</th>
+                    <th scope="col">Activo</th>
+                    <th *ngIf="_authService.getTipo() == tipos.SUPERUSUARIO" scope="col" class="text-center">Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <ng-container *ngFor="let proyecto of proyectos.projects">
+                    <tr>
+                        <th scope="row">{{proyecto.id}}</th>
+                        <td>{{proyecto.nombre}}</td>
+                        <td>{{proyecto.activo ? "Sí" : "No"}}</td>
+                        <td class="text-center" *ngIf="_authService.getTipo() == tipos.SUPERUSUARIO">
+                            <button type="button" class="btn btn-outline-dark me-1"
+                                (click)="editProyecto(proyecto.id)">Editar</button>
+                            <button *ngIf="proyecto.activo" type="button" class="btn btn-warning me-1"
+                                (click)="toggleActive(proyecto.id)">Inactivar</button>
+                            <button *ngIf="!proyecto.activo" type="button" class="btn btn-success me-1"
+                                (click)="toggleActive(proyecto.id)">Activar</button>
+
+                            <button type="button" class="btn btn-danger"
+                                (click)="deleteProyecto(proyecto.id)">Eliminar</button>
+                        </td>
+                    </tr>
+                </ng-container>
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<router-outlet></router-outlet>

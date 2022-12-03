@@ -39,7 +39,8 @@ class ProjectView(View):
 
     def get(self, request):
 
-        jsonData = json.loads(request.body)
+        #jsonData = json.loads(request.body)
+        jsonData = request.GET
         token = jsonData["accessToken"]
 
         if TokenManager.verifyToken(token):
@@ -122,7 +123,8 @@ class UserView(View):
 
 
     def get(self, request):
-        jsonData = json.loads(request.body)
+        #jsonData = json.loads(request.body)
+        jsonData = request.GET
         token = jsonData["accessToken"]
 
         if TokenManager.verifyToken(token):
@@ -161,7 +163,7 @@ class UserView(View):
             if self.userExists(username=jsonData["username"]):
                 data = {'status': '2', 'description': 'Error adding the user: the username already exists.'}
             else:
-                Usuario.objects.create(username=jsonData["username"], password=jsonData["password"], nombre=jsonData["nombre"], apellido=jsonData["apellido"], telefono=jsonData["telefono"], email=jsonData["email"], tipo=jsonData["tipo"], activo=jsonData["activo"])
+                Usuario.objects.create(username=jsonData["username"], password=jsonData["password"], nombre=jsonData["nombre"], apellido=jsonData["apellido"], telefono=jsonData["telefono"], email=jsonData["email"], tipo=jsonData["tipo"], activo=True)
 
                 data = {'status': '0', 'description': 'User added.'}
         else:
@@ -226,7 +228,8 @@ class ProjectUserView(View):
 
     def get(self, request):
 
-        jsonData = json.loads(request.body)
+        #jsonData = json.loads(request.body)
+        jsonData = request.GET
         token = jsonData["accessToken"]
 
         if TokenManager.verifyToken(token):
@@ -242,7 +245,7 @@ class ProjectUserView(View):
 
                 projectsUsers.append(projectUserData)
         
-            return HttpResponse(json.dumps(projectsUsers), 'application/json')
+            return HttpResponse('{"status": 0, "projectsUsers":' + json.dumps(projectsUsers) + '}', 'application/json')
         else:
             return HttpResponse('{"status": 2, "description": "You are not allowed to access this content."}', 'application/json')
 
@@ -264,7 +267,7 @@ class ProjectUserView(View):
             if not self.userExists(jsonData["usuarioId"]) or not self.projectExists(jsonData["proyectoId"]):
                 data = {'status': '1', 'description': 'User and/or project don\'t exist.'}
             else:
-                ProyectoUsuario.objects.create(proyecto_id=Proyecto(id=jsonData["proyectoId"]), usuario_id=Usuario(id=jsonData["usuarioId"]), activo=jsonData["usuarioId"])
+                ProyectoUsuario.objects.create(proyecto_id=Proyecto(id=jsonData["proyectoId"]), usuario_id=Usuario(id=jsonData["usuarioId"]), activo=True)
                 data = {'status': '0', 'description': 'User added to project.'}
         else:
             data = {'status': '2', 'description': 'You are not allowed to perform this action.'}

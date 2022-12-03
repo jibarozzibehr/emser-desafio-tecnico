@@ -1,0 +1,34 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+
+    <h1 class="mb-5">Nuevo proyecto</h1>
+
+    <div *ngIf="fin" class="alert alert-success" role="alert">
+        Proyecto agregado.
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger" role="alert">
+        Error al agregar el proyecto. Revise los datos.
+    </div>
+
+    <form *ngIf="!fin" [formGroup]="addProyectoForm" class="row" (ngSubmit)="addProyecto()">
+
+        <div class="col-md-6 mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" formControlName="nombre"
+                [class.is-invalid]="submitted && addProyectoForm.controls.nombre.errors?.required">
+            <div class="invalid-feedback">
+                Debe ingresar un nombre.
+            </div>
+
+
+        </div>
+
+        <div class="col-md-6 mb-3 align-items-end justify-content-end d-flex">
+            <button type="submit" class="btn btn-primary">Agregar proyecto</button>
+        </div>
+
+    </form>
+
+</div>

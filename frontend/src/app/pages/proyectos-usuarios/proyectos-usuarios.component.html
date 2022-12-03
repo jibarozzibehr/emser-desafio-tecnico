@@ -1,0 +1,39 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+
+    <div class="d-flex mb-5 justify-content-between">
+        <h1>Proyectos - Usuarios</h1>
+
+        <div class="d-flex align-items-center" *ngIf="_authService.getTipo() == tipos.SUPERUSUARIO">
+            <button class="btn btn-primary" (click)="addProyectoUsuario()">Nuevo Proyecto-Usuario</button>
+        </div>
+    </div>
+
+    <p class="mt-5 text-center" *ngIf="!proyectosUsuarios || proyectosUsuarios.projectsUsers.length <= 0">No hay
+        proyectos-usuarios disponibles.</p>
+
+    <div *ngIf="proyectosUsuarios && proyectosUsuarios.projectsUsers.length > 0" class="table-responsive mt-3">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Usuario</th>
+                    <th scope="col">Proyecto</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <ng-container *ngFor="let proyectoUsuario of proyectosUsuarios.projectsUsers">
+                    <tr>
+                        <th scope="row">{{proyectoUsuario.id}}</th>
+                        <td>{{proyectoUsuario.username}}</td>
+                        <td>{{proyectoUsuario.project}}</td>
+                    </tr>
+                </ng-container>
+
+            </tbody>
+        </table>
+    </div>
+
+</div>

@@ -1,0 +1,67 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+
+    <div class="d-flex mb-5 justify-content-between">
+        <h1>Usuarios</h1>
+
+        <div class="d-flex align-items-center" *ngIf="_authService.getTipo() == tipos.SUPERUSUARIO">
+            <button class="btn btn-primary" (click)="addUsuario()">Nuevo Usuario</button>
+        </div>
+    </div>
+
+    <p class="mt-5 text-center" *ngIf="!usuarios || usuarios.users.length <= 0">No hay usuarios disponibles.</p>
+
+    <div *ngIf="fin" class="alert alert-success alert-dismissible fade show" role="alert">
+        Transacción exitosa.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+        Hubo un error al editar el usuario.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+    <div *ngIf="usuarios && usuarios.users.length > 0" class="table-responsive mt-3">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Código</th>
+                    <th scope="col">Username</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Tipo</th>
+                    <th scope="col">Activo</th>
+                    <th *ngIf="_authService.getTipo() == tipos.SUPERUSUARIO" scope="col" class="text-center">Acciones
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <ng-container *ngFor="let usuario of usuarios.users">
+                    <tr>
+                        <th scope="row">{{usuario.id}}</th>
+                        <td>{{usuario.username}}</td>
+                        <td>{{usuario.nombre}}</td>
+                        <td>{{usuario.tipo == tipos.SUPERUSUARIO ? "Superusuario" : "Admin"}}</td>
+                        <td>{{usuario.activo ? "Sí" : "No"}}</td>
+                        <td class="text-center" *ngIf="_authService.getTipo() == tipos.SUPERUSUARIO">
+                            <button type="button" class="btn btn-outline-dark me-1"
+                                (click)="editUsuario(usuario.id)">Editar</button>
+                            <button *ngIf="usuario.activo" type="button" class="btn btn-warning me-1"
+                                (click)="toggleActive(usuario.id)">Inactivar</button>
+                            <button *ngIf="!usuario.activo" type="button" class="btn btn-success me-1"
+                                (click)="toggleActive(usuario.id)">Activar</button>
+
+                            <button type="button" class="btn btn-danger"
+                                (click)="deleteUsuario(usuario.id)">Eliminar</button>
+                        </td>
+                    </tr>
+                </ng-container>
+
+            </tbody>
+        </table>
+    </div>
+
+</div>

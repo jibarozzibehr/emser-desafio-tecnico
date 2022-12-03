@@ -1,4 +1,4 @@
-<nav class="navbar bg-light fixed-top">
+<!-- <nav class="navbar bg-light fixed-top">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">Módulo Clientes</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
@@ -40,4 +40,57 @@
             </div>
         </div>
     </div>
-</nav>
+</nav> -->
+
+
+
+
+
+<div class="d-flex flex-column flex-shrink-0 p-3 light-mode h-100" style="width: 280px;">
+    <a href="/" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+        <span class="fs-4">Módulo Usuarios</span>
+    </a>
+    <hr>
+    <ul class="nav nav-pills flex-column mb-auto">
+        <li class="nav-item">
+            <a routerLink="/" class="nav-link" aria-current="page" routerLinkActive="active link-light"
+                [routerLinkActiveOptions]="{exact: true}">
+                Home
+            </a>
+        </li>
+        <li>
+            <a routerLink="/proyectos" class="nav-link" routerLinkActive="active link-light">
+                Proyectos
+            </a>
+        </li>
+        <li>
+            <a routerLink="/usuarios" class="nav-link" routerLinkActive="active">
+                Usuarios
+            </a>
+        </li>
+        <li>
+            <a routerLink="/proyectos-usuarios" class="nav-link" routerLinkActive="active">
+                ProyectosUsuarios
+            </a>
+        </li>
+    </ul>
+    <hr>
+    <div class="dropdown">
+        <div class="row d-flex align-items-center">
+            <div class="col">
+                <app-dark-mode-toggle></app-dark-mode-toggle>
+            </div>
+
+            <div class="col">
+                <a href="#" class="d-flex align-items-center link-dark text-decoration-none dropdown-toggle"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="../../../assets/avatar.png" alt="" class="rounded-circle me-2" width="32" height="32">
+                    <strong>{{username}}</strong>
+                </a>
+                <ul class="dropdown-menu text-small shadow">
+                    <li><a class="dropdown-item" (click)="logout()">Cerrar sesión</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

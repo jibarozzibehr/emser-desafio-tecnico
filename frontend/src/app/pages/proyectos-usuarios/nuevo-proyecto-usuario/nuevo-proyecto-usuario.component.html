@@ -1,0 +1,48 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+
+    <h1 class="mb-5">Nuevo Proyecto-Usuario</h1>
+
+    <div *ngIf="fin" class="alert alert-success alert-dismissible fade show col-md-6 offset-md-3" role="alert">
+        Transacción exitosa.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show col-md-6 offset-md-3" role="alert">
+        Error al añadir el proyecto-usuario.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+            (click)="cerrarAlerta()"></button>
+    </div>
+
+
+    <form *ngIf="!fin" [formGroup]="addProyectoUsuarioForm" class="row" (ngSubmit)="addProyectoUsuario()">
+        <div class="row">
+            <div class="col-md-6">
+                <label for="exampleFormControlInput1" class="form-label">Usuario</label>
+                <select class="form-select" formControlName="usuario">
+                    <ng-container *ngFor="let usuarios of usuarios?.users">
+                        <option value="{{usuarios.id}}">{{usuarios.nombre}}</option>
+                    </ng-container>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label for="exampleFormControlInput1" class="form-label">Proyecto</label>
+                <select class="form-select" formControlName="proyecto">
+                    <ng-container *ngFor="let proyecto of proyectos?.projects">
+                        <option value="{{proyecto.id}}">{{proyecto.nombre}}</option>
+                    </ng-container>
+                </select>
+            </div>
+
+            <div class="col-md-12 my-3 align-items-end justify-content-end d-flex">
+                <button type="submit" class="btn btn-primary">Agregar proyecto-usuario</button>
+            </div>
+        </div>
+
+    </form>
+
+
+</div>
